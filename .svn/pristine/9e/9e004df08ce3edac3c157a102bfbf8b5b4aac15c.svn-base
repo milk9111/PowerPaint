@@ -1,0 +1,115 @@
+
+package action;
+
+import java.awt.event.ActionEvent;
+import java.net.URL;
+import java.util.Objects;
+
+import javax.swing.AbstractAction;
+import javax.swing.ImageIcon;
+import javax.swing.KeyStroke;
+
+import gui.MyPanel;
+import tools.Tool;
+
+/**
+ * An Action for the Direction Buttons.
+ * 
+ * Actions are used when 2 or more components have the SAME behavior. This may
+ * happen when you have functionality both in a ToolBar AND Menu. In this
+ * example, the North/Up button is found in both the ToolBar and the Menu.
+ * Instead of duplicating code for each, we use an Action to represent the state
+ * of North/Up and the action performed when up is clicked.
+ * 
+ * https://docs.oracle.com/javase/tutorial/uiswing/misc/action.html
+ * 
+ * https://docs.oracle.com/javase/8/docs/api/javax/swing/AbstractAction.html
+ * 
+ * @author Charles Bryan
+ * @version Autumn 2015
+ */
+public class ToolAction extends AbstractAction
+{
+
+    /**
+     * A generated serial version UID for object Serialization.
+     * http://docs.oracle.com/javase/7/docs/api/java/io/Serializable.html
+     */
+    private static final long serialVersionUID = -2193928786463255262L;
+
+    /** Error message used when an Icon is NOT found. */
+    private static final String ERROR_MESSAGE = "Resource not found: ";
+
+    /** the direction for this action. */
+    private final Tool myTool;
+
+    /**
+     * Initializes the Actions Fields.
+     * 
+     * @param theDir this Actions direction.
+     * @param thePanel the DrawingArea this action controls
+     */
+    public ToolAction(final Tool theTool)
+    {
+        super(theTool.getClass().getSimpleName());
+        myTool = theTool;
+        System.out.println(myTool.getClass().getSimpleName());
+        putValue(SHORT_DESCRIPTION, myTool.getClass().getSimpleName());
+
+        // to set the mnemonic in an Action, we need to send the VK key code.
+        // here is a way to get the VK key code if you just have a char.
+        final int keyCode =
+                        KeyStroke.getKeyStroke
+                        (myTool.getClass().getSimpleName().charAt(0), 0).getKeyCode();
+        putValue(MNEMONIC_KEY, keyCode);
+
+        // SELECTED_KEY is used when Actions toggle states.
+        // https://docs.oracle.com/javase/8/docs/api/javax/swing/Action.html#SELECTED_KEY
+        putValue(SELECTED_KEY, true);
+    }
+    
+    public Tool getTool()
+    {
+        return myTool;
+    }
+
+    // /**
+    // * A helper to setup the image to be used by this Action.
+    // */
+    // private void setUpImage()
+    // {
+    // final String imgLocation = "images/" +
+    // Character.toLowerCase(myDir.letter()) + ".gif";
+    //
+    // // When using ToolBarExample.class.getResource, runtime
+    // // is expecting the images to be in the same location as the
+    // // .class file for THIS class. In an eclipse project, that is
+    // // bin/*package folder*
+    // final URL imageURL =
+    // ToolBarExampleWithActions.class.getResource(imgLocation);
+    // if (Objects.nonNull(imageURL))
+    // {
+    // // image found
+    // putValue(SMALL_ICON, new ImageIcon(imageURL, myDir.toString()));
+    // }
+    // else
+    // {
+    // // no image found
+    // System.err.println(ERROR_MESSAGE + imageURL);
+    // }
+    // }
+
+    @Override
+    public void actionPerformed(final ActionEvent theEvent)
+    {
+        // Here, we are explicitly spelling out which myDrawingArea
+        // object we want to change.
+        // ToolBarExampleWithActions.this.myDrawingArea.moveShape(myDir);
+
+        // The following will work as well. In this inner class, we have access
+        // to the outer class's instance fields, even if they are private.
+        // myPanel.moveShape(myTool);
+        firePropertyChange("HOME", false, true);
+    }
+
+}

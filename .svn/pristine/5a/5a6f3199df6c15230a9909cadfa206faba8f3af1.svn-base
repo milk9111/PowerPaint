@@ -1,0 +1,111 @@
+package tools;
+
+import java.awt.Color;
+import java.awt.Point;
+import java.awt.Shape;
+import java.awt.event.MouseEvent;
+
+import javax.swing.Action;
+
+
+/**
+ * The interface all Tools will implement. Extends 
+ * MouseMotionListener.
+ * @author Connor Lundberg
+ * @version 5/11/2016
+ */
+public interface Tool extends Cloneable, Action
+{
+    /**
+     * Paints the Tool.
+     */
+    void paint();
+    
+    /**
+     * On mouse dragged.
+     * 
+     * @param theEvent The event that's happening
+     * @return The Point
+     */
+    void dragged(final Point thePoint);
+    
+    Tool clone() throws CloneNotSupportedException;
+    
+    void setIsFilled(final boolean theValue);
+    
+    void setIsSelected(final boolean theValue);
+    
+    void setDrawColor(final Color theColor);
+    
+    void setFillColor(final Color theColor);
+    
+    boolean isSelected();
+    
+    void setInitialPoint(final Point theStart);
+    
+    void setShape(final Shape theShape);
+    
+    void paintPencil(final Point theStart, final Point theCurrent);
+    
+    /**
+     * On mouse moved.
+     * 
+     * @param theEvent The event that's happening
+     * @return The Point
+     */
+    void moved(final MouseEvent theEvent);
+    
+    /** 
+     * Returns the Shape. 
+     * 
+     * @return The shape
+     * */
+    Shape getShape();
+    
+    /**
+     * Returns the draw color.
+     * 
+     * @return The draw color
+     */
+    Color getBorderColor();
+    
+    /**
+     * Returns the fill color.
+     * 
+     * @return The fill color
+     */
+    Color getFillColor();
+    
+    
+    /**
+     * Returns the fill.
+     * 
+     * @return The fill
+     */
+    boolean isFilled();
+    
+    /**
+     * Returns the stroke thickness.
+     * 
+     * @return The thickness
+     */
+    int getWidth();
+    
+    /**
+     * Returns a clone of the initial point.
+     * 
+     * @return A clone of the initial point
+     */
+    Point getInitialPoint();
+    
+    /**
+     * Returns a clone of the current point.
+     * 
+     * @return A clone of the current point
+     */
+    Point getCurrentPoint();
+
+    void setWidth(int thickness);
+    
+    
+}

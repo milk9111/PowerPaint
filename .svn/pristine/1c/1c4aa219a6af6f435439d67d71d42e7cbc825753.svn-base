@@ -1,0 +1,52 @@
+
+package tools;
+
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.event.MouseEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Line2D;
+import java.awt.geom.PathIterator;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+
+
+/**
+ * My Line class that creates and handles the Line drawing Tool.
+ * 
+ * @author Connor Lundberg
+ * @version 5/11/2016
+ */
+public class Line extends AbstractTool implements Tool
+{
+
+
+    /**
+     * The Line's constructor.
+     * 
+     * @param theWidth The Line's width
+     * @param theInitialPoint The Line's initial point
+     * @param theCurrentPoint The Line's current point
+     * @param theBorderColor The Line's border color
+     */
+    public Line(final Point theInitialPoint, final Point theCurrentPoint, final int theWidth,
+                final Color theBorderColor)
+    {
+        super(new Line2D.Double(), theInitialPoint, theCurrentPoint,
+              theWidth, theBorderColor, Color.WHITE, false);
+    }
+
+    @Override
+    public void paint()
+    {
+        setShape(new Line2D.Double());
+        ((Line2D) getShape()).setLine(getInitialPoint(), getCurrentPoint());
+    }
+
+}

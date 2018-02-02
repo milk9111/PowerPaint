@@ -1,0 +1,373 @@
+
+package gui;
+
+import com.sun.glass.events.KeyEvent;
+
+import action.ColorChooserAction;
+import action.ToolAction;
+import tools.Tool;
+
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import java.awt.geom.Rectangle2D;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.swing.AbstractAction;
+import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JColorChooser;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JSlider;
+import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
+
+/**
+ * Creates the menu bar.
+ * 
+ * @author Connor Lundberg
+ * @version 5/11/2016
+ */
+public class MyMenuBar extends JMenuBar
+{
+    /** The default draw color (UW Purple). */
+    private static final Color DEFAULT_DRAW_COLOR = new Color(51, 0, 111);
+
+    /** The default draw color (UW Gold). */
+    private static final Color DEFAULT_FILL_COLOR = new Color(232, 211, 1);
+
+    /** The default line width. */
+    private static final int LINE_WIDTH = 1;
+
+    /** The max thickness. */
+    private static final int THICKNESS_MAX = 20;
+
+    /** The thickness slider spacing. */
+    private static final int THICKNESS_SPACING = 5;
+
+    /**
+     * Auto-generated serial ID.
+     */
+    private static final long serialVersionUID = -7863806568418316202L;
+
+    /** If the shape can draw. */
+    private boolean myCanDraw;
+
+    /** The thickness slider. */
+    private JSlider mySlider;
+
+    /** The current tool. */
+    private Tool myCurrentTool;
+
+    /** The image. */
+    private ImageIcon myIcon;
+
+    /** The radio button group. */
+    private ButtonGroup myRadioButtonGroup;
+
+    /** The draw color. */
+    private Color myDrawColor;
+
+    /** The fill color. */
+    private Color myFillColor;
+
+    private PropertyChangeSupport myPropertySupport;
+
+    private MyToolBar myToolBar;
+
+    private static boolean myIsFilled;
+
+    /**
+     * Creates the menu bar.
+     * 
+     * @param theMenuLabels
+     * @param theIcon
+     */
+    public MyMenuBar(final String[] theMenuLabels, final List<ToolAction> myToolActions,
+                     final ImageIcon theIcon, final MyToolBar theToolBar)
+    {
+        super();
+
+        myRadioButtonGroup = new ButtonGroup();
+
+        myToolBar = theToolBar;
+
+        myIcon = theIcon;
+
+        myDrawColor = DEFAULT_DRAW_COLOR;
+        myFillColor = DEFAULT_FILL_COLOR;
+
+        myPropertySupport = new PropertyChangeSupport(this);
+
+        buildFileMenu(this, theMenuLabels);
+        buildOptionsMenu(this, theMenuLabels);
+        buildToolsMenu(this, theMenuLabels, myToolActions);
+        buildHelpMenu(this, theMenuLabels);
+    }
+
+    /**
+     * Builds the Help menu.
+     * 
+     * @param theMenuBar The menu bar to add to
+     * @param theMenuLabels The labels to use
+     */
+    private void buildHelpMenu(final JMenuBar theMenuBar, final String[] theMenuLabels)
+    {
+        final JMenu helpMenu = new JMenu(theMenuLabels[theMenuLabels.length - 1]);
+        helpMenu.setMnemonic(KeyEvent.VK_H);
+
+        final JMenuItem about = new JMenuItem("About...");
+        about.setMnemonic(KeyEvent.VK_A);
+        about.addActionListener((theEvent) ->
+        {
+
+            javax.swing.JOptionPane.showMessageDialog(this,
+                                                      "TCSS 305 PowerPaint\n"
+                                                            + "Spring 2016\nConnor Lundberg",
+                                                      "About", JOptionPane.INFORMATION_MESSAGE,
+                                                      myIcon);
+        });
+
+        helpMenu.add(about);
+
+        theMenuBar.add(helpMenu);
+    }
+
+    /**
+     * Builds the Tools menu.
+     * 
+     * @param theMenuBar The menu bar to add to
+     * @param theMenuLabels The labels to add
+     * @param theToolActions The actions to link to
+     */
+    private void buildToolsMenu(final JMenuBar theMenuBar, final String[] theMenuLabels,
+                                final List<ToolAction> theToolActions)
+    {
+        final JMenu toolsMenu = new JMenu(theMenuLabels[2]);
+        toolsMenu.setMnemonic(KeyEvent.VK_T);
+        final ButtonGroup buttonGroup = new ButtonGroup();
+        
+        for (final ToolAction toolAction : theToolActions)
+        {
+            final JRadioButtonMenuItem radioButton = 
+                            new JRadioButtonMenuItem(toolAction);
+//            radioButton.addActionListener((theEvent) ->
+//            {
+//                myCanDraw = true;
+//                myCurrentTool = toolAction.getTool();
+//            });
+            radioButton.setText(toolAction.getTool().getClass().getSimpleName());
+
+            buttonGroup.add(radioButton);
+            toolsMenu.add(radioButton);
+        }
+
+        theMenuBar.add(toolsMenu);
+    }
+
+    /**
+     * Returns the current tool.
+     * 
+     * @return The current tool
+     */
+    public Tool getCurrentTool()
+    {
+        return myCurrentTool;
+    }
+
+    /**
+     * Returns myCanDraw.
+     * 
+     * @return myCanDraw
+     */
+    public boolean getCanDraw()
+    {
+        return myCanDraw;
+    }
+
+    /**
+     * Builds the Options Menu and its items.
+     * 
+     * @param theMenuBar The menu bar to add to
+     * @param theMenuLabels The labels to add
+     */
+    private void buildOptionsMenu(final JMenuBar theMenuBar, final String[] theMenuLabels)
+    {
+        final JMenu optionsMenu = new JMenu(theMenuLabels[1]);
+        optionsMenu.setMnemonic(KeyEvent.VK_O);
+
+        final JMenu subMenu = new JMenu("Thickness");
+        subMenu.setMnemonic(KeyEvent.VK_T);
+        subMenu.add(createJSlider());
+
+        optionsMenu.add(subMenu);
+
+        optionsMenu.addSeparator();
+
+        final ColorChooserAction drawChooser = new ColorChooserAction(myDrawColor);
+        final JMenuItem chooseDraw = new JMenuItem("Draw Color...");
+        chooseDraw.addActionListener((theEvent) ->
+        {
+            drawChooser.actionPerformed(theEvent);
+            myDrawColor = drawChooser.getColor();
+        });
+
+        chooseDraw.setMnemonic(KeyEvent.VK_D);
+        optionsMenu.add(chooseDraw);
+
+        final ColorChooserAction fillChooser = new ColorChooserAction(myFillColor);
+        final JMenuItem chooseFill = new JMenuItem("Fill Color...");
+        chooseFill.addActionListener((theEvent) ->
+        {
+            fillChooser.actionPerformed(theEvent);
+            myFillColor = fillChooser.getColor();
+        });
+        chooseFill.setMnemonic(KeyEvent.VK_F);
+        optionsMenu.add(chooseFill);
+
+        optionsMenu.addSeparator();
+
+        final JCheckBoxMenuItem fill = new JCheckBoxMenuItem("Fill");
+        fill.addActionListener((theEvent) ->
+        {
+            // myPropertySupport.firePropertyChange("Selected_Key", false,
+            // fill.isSelected());
+            System.out.println("fill is selected: " + fill.isSelected());
+            myIsFilled = fill.isSelected();
+//            fill.addPropertyChangeListener(new FillListener());
+//            fill.firePropertyChange("fill", false, true);
+
+        });
+        // addPropertyChangeListener(this);
+        fill.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_MASK));
+        optionsMenu.add(fill);
+
+        theMenuBar.add(optionsMenu);
+    }
+    
+    public static boolean getMyIsFilled()
+    {
+        //System.out.println("myIsFilled: " + myIsFilled);
+        return myIsFilled;
+    }
+
+    public Color getDrawColor()
+    {
+        return myDrawColor;
+    }
+
+    public Color getFillColor()
+    {
+        return myFillColor;
+    }
+
+    /**
+     * Chooses the new color for the color given.
+     * 
+     * @param theItem The item to open from
+     * @param theColor The color to change
+     * @param theInitialColor The initial color
+     */
+    // private void chooseColor(final JMenuItem theItem, final Color theColor,
+    // final Color theInitialColor)
+    // {
+    // theItem.addActionListener((theEvent) ->
+    // {
+    // final Color newColor = JColorChooser.showDialog(theItem,
+    // theItem.getText(),
+    // theInitialColor);
+    // myDrawColor = newColor;
+    // });
+    // }
+
+    /**
+     * Creates the thickness JSlider.
+     * 
+     * @return The JSlider for thickness
+     */
+    private JSlider createJSlider()
+    {
+        mySlider = new JSlider();
+        mySlider.setMinimum(0);
+        mySlider.setMaximum(THICKNESS_MAX);
+        mySlider.setMajorTickSpacing(THICKNESS_SPACING);
+        mySlider.setMinorTickSpacing(1);
+        mySlider.createStandardLabels(THICKNESS_SPACING);
+        mySlider.setPaintTicks(true);
+        mySlider.setPaintLabels(true);
+        mySlider.setValue(LINE_WIDTH);
+
+        return mySlider;
+    }
+
+    /**
+     * Returns the Slider's current thickness.
+     * 
+     * @return The thickness
+     */
+    public int getThickness()
+    {
+        return mySlider.getValue();
+    }
+
+    /**
+     * Builds the File menu and its items.
+     * 
+     * @param theMenuBar The menu bar to add to
+     * @param theMenuLabels
+     */
+    private void buildFileMenu(final JMenuBar theMenuBar, final String[] theMenuLabels)
+    {
+        final JMenu fileMenu = new JMenu(theMenuLabels[0]);
+        fileMenu.setMnemonic(KeyEvent.VK_F);
+
+        final JMenuItem clearItem = new JMenuItem("Clear");
+        clearItem.setMnemonic(KeyEvent.VK_C);
+        clearItem.setEnabled(false);
+
+        final JMenuItem exitItem = new JMenuItem("Exit");
+        exitItem.addActionListener((theEvent) ->
+        {
+            // myFrame.dispatchEvent(new WindowEvent(this,
+            // WindowEvent.WINDOW_CLOSING));
+        });
+        exitItem.setMnemonic(KeyEvent.VK_X);
+
+        fileMenu.add(clearItem);
+        fileMenu.addSeparator();
+        fileMenu.add(exitItem);
+
+        theMenuBar.add(fileMenu);
+    }
+
+    class FillListener implements PropertyChangeListener
+    {
+
+        @Override
+        public void propertyChange(final PropertyChangeEvent theEvent)
+        {
+            System.out.println("\ninside property change");
+            System.out.println("Property change event name: " + theEvent.getPropertyName());
+            System.out.println("Before: " + myToolBar.getCurrentTool().isFilled());
+            System.out.println(theEvent.getNewValue());
+            if (theEvent.getPropertyName().equals("fill"))
+            {
+                myToolBar.getCurrentTool().setIsFilled((boolean) theEvent.getNewValue());
+            }
+            System.out.println("After: " + myToolBar.getCurrentTool().isFilled());
+
+        }
+    }
+}

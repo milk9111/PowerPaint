@@ -1,0 +1,77 @@
+
+package tools;
+
+import java.awt.Color;
+import java.awt.Point;
+import java.awt.Shape;
+import java.awt.geom.Path2D;
+import java.awt.geom.Point2D;
+
+/**
+ * Creates the Pencil Tool.
+ * 
+ * @author Connor Lundberg
+ * @version 5/11/2016
+ */
+public class Pencil extends AbstractTool implements Tool
+{
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 5681961948184362366L;
+
+    private Path2D myPath;
+    
+    private Point2D myCurrentPoint;
+
+    /**
+     * Creates the Pencil Tool.
+     * 
+     * @param theInitialPoint The initial point
+     * @param theCurrentPoint The current point
+     * @param theWidth The thickness
+     * @param theBorderColor The line color
+     */
+    public Pencil(final Point theInitialPoint, final Point theCurrentPoint, final int theWidth,
+                  final Color theBorderColor)
+    {
+        super(new Path2D.Double(), theInitialPoint, theCurrentPoint, theWidth, theBorderColor,
+              Color.WHITE, false);
+        myCurrentPoint = theCurrentPoint;
+        myPath = new Path2D.Double();
+
+    }
+
+    @Override
+    public void paintPencil(final Point theStart, final Point theCurrent)
+    {
+        setShape(new Path2D.Double());
+        System.out.println("\nPencil paint:");
+        if (((Path2D) getShape()).getCurrentPoint() == null)
+        {
+            ((Path2D) getShape()).moveTo(theStart.getX(), theStart.getY());
+        }
+        else
+        {
+            ((Path2D) getShape()).lineTo(theCurrent.getX(), theCurrent.getY());
+            //setInitialPoint(getInitialPoint());
+        }
+        
+    }
+    
+    @Override
+    public Shape getShape()
+    {
+        return (Shape) myPath;
+    }
+
+
+    @Override
+    public void paint()
+    {
+        // TODO Auto-generated method stub
+        
+    }
+
+}

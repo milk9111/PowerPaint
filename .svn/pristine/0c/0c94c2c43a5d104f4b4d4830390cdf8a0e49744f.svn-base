@@ -1,0 +1,48 @@
+package action;
+
+import java.awt.Color;
+import java.awt.event.ActionEvent;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JColorChooser;
+
+/**
+ * The Color chooser action class.
+ * 
+ * @author Connor Lundberg
+ * @version 5/16/2016
+ */
+public class ColorChooserAction extends AbstractAction 
+{
+    
+    private Color myColor;
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 2773364947929804745L;
+    
+    public ColorChooserAction(Color theColor)
+    {
+        System.out.println("\nInside color chooser constructor.");
+        myColor = theColor;
+    }
+
+    @Override
+    public void actionPerformed(final ActionEvent theEvent)
+    {
+        System.out.println("Inside color chooser actionPerformed.");
+
+        myColor = JColorChooser.showDialog(null, "Select a color...", null);
+        System.out.println("color chooser chosen color:" + myColor);
+    }
+    
+    public Color getColor()
+    {
+        System.out.println("Inside color chooser getColor.");
+
+        return myColor;
+    }
+
+}

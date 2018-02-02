@@ -1,0 +1,270 @@
+
+package gui;
+
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+import tools.Tool;
+
+/**
+ * Creates the PowerPaintGUI panel.
+ * 
+ * @author Connor Lundberg
+ * @version 5/11/2016
+ */
+public class MyPanel extends JPanel implements MouseListener
+{
+    /** Drawing Panel preferred size. */
+    private static final Dimension DRAWING_PANEL_SIZE = new Dimension(600, 300);
+
+    /**
+     * Auto-generated serial ID.
+     */
+    private static final long serialVersionUID = -5768044540221686839L;
+
+    /** The frame. */
+    private final JFrame myFrame;
+
+    /** The toggle button group. */
+    private final ButtonGroup myToggleButtonGroup;
+
+    /** ArrayList of all the Tools. */
+    private final List<Tool> myTools;
+
+    /** A list of all the drawn shapes that will be repainted. */
+    private final List<Tool> myDrawnShapes;
+
+    /** The tool bar. */
+    private MyToolBar myToolBar;
+
+    public Point myCurrentPoint;
+
+    private MyMenuBar myMenuBar;
+
+    /**
+     * Creates the panel.
+     * 
+     * @param theIcon The icon to set
+     * @param theFrame The frame to attach to
+     * @param theTools The list of tools
+     * @param theMenuBar The menu bar to reference
+     * @param theToolBar The tool bar to reference
+     * 
+     */
+    public MyPanel(final ImageIcon theIcon, final JFrame theFrame, final List<Tool> theTools,
+                   final MyToolBar theToolBar, final MyMenuBar theMenuBar)
+    {
+        super();
+
+        myFrame = theFrame;
+
+        myToggleButtonGroup = new ButtonGroup();
+
+        myTools = theTools;
+
+        myDrawnShapes = new ArrayList<Tool>();
+
+        myToolBar = theToolBar;
+
+        myMenuBar = theMenuBar;
+
+        setDrawingPanel();
+    }
+
+    /**
+     * Sets the drawing panel.
+     */
+    private void setDrawingPanel()
+    {
+
+        setLayout(new BorderLayout());
+        setPreferredSize(DRAWING_PANEL_SIZE);
+        setBackground(Color.WHITE);
+
+        addMouseMotionListener(new MyMouseInputAdapter());
+        addMouseListener(this);
+
+        myFrame.add(this, BorderLayout.CENTER);
+    }
+
+    /**
+     * Returns the list of DrawnShapes.
+     * 
+     * @return The drawn shapes
+     */
+    public List<Tool> getDrawnShapes()
+    {
+        return myDrawnShapes;
+    }
+
+    /**
+     * Paints the current path.
+     * 
+     * @param theGraphics The graphics context to use for painting.
+     */
+    public void paintComponent(final Graphics theGraphics)
+    {
+        System.out.println("\npaintComponent:");
+        super.paintComponent(theGraphics);
+        final Graphics2D g2d = (Graphics2D) theGraphics;
+
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                             RenderingHints.VALUE_ANTIALIAS_ON);
+
+        
+        for (final Tool tool : myDrawnShapes)
+        {
+            tool.paint();
+            // System.out.println("Tool being redrawn: " + tool);
+            // System.out.println("Last tool's current point: " +
+            // tool.getCurrentPoint());
+            System.out.println("old shape is filled? " + tool.isFilled());
+            if (tool.isFilled())
+            {
+                System.out.println("old shape if");
+                g2d.setColor(tool.getFillColor());
+                g2d.fill(tool.getShape());
+            }
+            g2d.setColor(tool.getBorderColor());
+            System.out.println("g2d paint: " + g2d.getPaint());
+            System.out.println("g2d color: " + g2d.getColor());
+
+            g2d.setStroke(new BasicStroke(tool.getWidth()));
+            g2d.draw(tool.getShape());
+
+        }
+
+        // System.out.println("Current tool being drawn: " +
+        // myToolBar.getCurrentTool());
+        // System.out.println("Initial point: " +
+        // myToolBar.getCurrentTool().getInitialPoint());
+        // System.out.println("new shape is filled? " +
+        // myToolBar.getCurrentTool().isFilled());
+        // System.out.println("new shape border color? " +
+        // myToolBar.getCurrentTool().getBorderColor());
+        // System.out.println("new shape fill color? " +
+        // myToolBar.getCurrentTool().getFillColor());
+        System.out.println("current tool is filled? " + myToolBar.getCurrentTool().isFilled());
+
+        if (myToolBar.getCurrentTool().isFilled())
+        {
+            System.out.println("the fill color: " + myMenuBar.getFillColor());
+            g2d.setColor(myMenuBar.getFillColor());
+            g2d.fill(myToolBar.getCurrentTool().getShape());
+        }
+        g2d.setColor(myMenuBar.getDrawColor());
+        // zero thickness is not working
+        g2d.setStroke(new BasicStroke(myMenuBar.getThickness()));
+        g2d.draw(myToolBar.getCurrentTool().getShape());
+    }
+
+    @Override
+    public void mouseClicked(final MouseEvent theEvent)
+    {
+    }
+
+    @Override
+    public void mouseEntered(final MouseEvent theEvent)
+    {
+        setCursor(new Cursor(Cursor.CROSSHAIR_CURSOR));
+    }
+
+    @Override
+    public void mouseExited(final MouseEvent theEvent)
+    {
+    }
+
+    @Override
+    public void mousePressed(final MouseEvent theEvent)
+    {
+
+    }
+
+    @Override
+    public void mouseReleased(final MouseEvent theEvent)
+    {
+        if (myToolBar.getCanDraw())
+        {
+            System.out.println("\nmouseReleased:");
+            try
+            {
+                myToolBar.getCurrentTool().setIsFilled(MyMenuBar.getMyIsFilled());
+                myToolBar.getCurrentTool().setDrawColor(myMenuBar.getDrawColor());
+                // myToolBar.getCurrentTool().setFillColor(myMenuBar.getFillColor());
+                myToolBar.getCurrentTool().setWidth(myMenuBar.getThickness());
+                myDrawnShapes.add(myToolBar.getCurrentTool().clone());
+            }
+            catch (final CloneNotSupportedException e)
+            {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        System.out.println("Drawn shapes: " + myDrawnShapes);
+    }
+
+    /**
+     * Inner class to handle Mouse Motion events.
+     * 
+     * @author Connor Lundberg
+     * @version 5/6/2016
+     */
+    class MyMouseInputAdapter implements MouseMotionListener
+    {
+        @Override
+        public void mouseDragged(final MouseEvent theEvent)
+        {
+            // System.out.println("tool bar2: " + myToolBar.getCanDraw());
+            // System.out.println("menu bar2: " + MyMenuBar.getCanDraw());
+            // System.out.println("Can draw2: " + (myToolBar.getCanDraw() ==
+            // MyMenuBar.getCanDraw()));
+            if (myToolBar.getCanDraw())
+            {
+                System.out.println("\nmouseDragged:");
+                System.out.println("initial point: "
+                                   + myToolBar.getCurrentTool().getInitialPoint());
+                myToolBar.getCurrentTool().dragged(theEvent);
+                // myToolBar.getCurrentTool().paintPencil(myCurrentPoint,
+                // theEvent.getPoint());
+                myToolBar.getCurrentTool().paint();
+                repaint();
+            }
+        }
+
+        @Override
+        public void mouseMoved(final MouseEvent theEvent)
+        {
+            // System.out.println("tool bar: " + myToolBar.getCanDraw());
+            // System.out.println("menu bar: " + MyMenuBar.getCanDraw());
+            // System.out.println("Can draw: " + (myToolBar.getCanDraw() ==
+            // MyMenuBar.getCanDraw()));
+            // System.out.println("\nmouseMoved:");
+            // System.out.println("Initial point: " +
+            // myToolBar.getCurrentTool().getInitialPoint());
+            if (myToolBar.getCanDraw())
+            {
+                // myCurrentPoint = theEvent.getPoint();
+                myToolBar.getCurrentTool().setIsFilled(MyMenuBar.getMyIsFilled());
+                myToolBar.getCurrentTool().moved(theEvent);
+            }
+        }
+    }
+}

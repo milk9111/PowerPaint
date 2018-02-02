@@ -1,0 +1,126 @@
+
+package gui;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Point;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+
+import action.ToolAction;
+import tools.Ellipse;
+import tools.Line;
+import tools.Pencil;
+import tools.Rectangle;
+import tools.Tool;
+
+/**
+ * This is the PowerPaintGUI class that makes the window and handles the events.
+ * 
+ * @author Connor Lundberg
+ * @version 5/3/2016
+ */
+public class PowerPaintGUI extends JFrame
+{
+    /** An array of menu labels. */
+    private static final String[] MENU_LABELS = {"File", "Options", "Tools", "Help"};
+    
+    /** the initial point. */
+    private static final Point INITIAL_POINT = new Point(-1000, -500);
+
+    /** The default draw color (UW Purple). */
+    private static final Color DEFAULT_DRAW_COLOR = new Color(51, 0, 111);
+
+    /** The default draw color (UW Gold). */
+    private static final Color DEFAULT_FILL_COLOR = new Color(232, 211, 1);
+    
+    /** Auto-generated serial ID. */
+    private static final long serialVersionUID = -6870003831272220140L;
+
+    /** Default line width. */
+    private static final int LINE_WIDTH = 1;
+
+    /** The icon displayed. */
+    private final ImageIcon myIcon;   
+    
+    /** The draw color to use. */
+    private final Color myDrawColor;
+
+    /** The fill color to use. */
+    private final Color myFillColor;
+    
+    /** The list of tools to use. */
+    private final List<Tool> myTools;
+    
+    private final List<ToolAction> myToolActions;
+
+    /** The menu bar. */
+    private MyMenuBar myMenuBar;
+
+    private MyToolBar myToolBar; 
+
+    /**
+     * Default constructor.
+     */
+    public PowerPaintGUI()
+    {
+        super();
+ 
+        myIcon = new ImageIcon("images/pencil.gif");
+        
+        myDrawColor = DEFAULT_DRAW_COLOR;
+        myFillColor = DEFAULT_FILL_COLOR;
+        
+        myTools = new ArrayList<Tool>();
+        myTools.add(new Pencil(INITIAL_POINT, INITIAL_POINT, LINE_WIDTH, myDrawColor));
+        myTools.add(new Line(INITIAL_POINT, INITIAL_POINT, LINE_WIDTH, myDrawColor));
+        myTools.add(new Rectangle(INITIAL_POINT, INITIAL_POINT, LINE_WIDTH, myDrawColor, myFillColor, false));
+        myTools.add(new Ellipse(INITIAL_POINT, INITIAL_POINT, LINE_WIDTH, myDrawColor, myFillColor, false));
+        
+        myToolActions = new ArrayList<ToolAction>();
+        for (final Tool tool : myTools)
+        {
+            myToolActions.add(new ToolAction(tool));
+        }
+        
+    }
+
+    /**
+     * The start method that sets up the entire GUI.
+     */
+    public void start()
+    {
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setTitle("PowerPaint");
+        setLayout(new BorderLayout());
+        setJFrame();
+        setIconImage(myIcon.getImage());
+        
+        myToolBar = new MyToolBar(myToolActions);
+        myMenuBar = new MyMenuBar(MENU_LABELS, myToolActions, myIcon, myToolBar);
+        
+        setJMenuBar(myMenuBar);
+        add(myToolBar, BorderLayout.SOUTH);
+
+        new MyPanel(myIcon, this, myTools, myToolBar, myMenuBar);
+        
+        setLocation(0, 0);
+        pack();
+        setVisible(true);
+    }
+
+    /**
+     * Sets the JFrame.
+     */
+    private void setJFrame()
+    {
+        pack();
+        setMinimumSize(getSize());
+    }
+}
